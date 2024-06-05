@@ -10,6 +10,7 @@ Date    : 05/06/2024
 #include <stdio.h>
 #include <windows.h>
 
+//#define multiprocess
 #define multithread
 #define alternance
 //#define semaphore
