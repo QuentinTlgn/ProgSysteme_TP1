@@ -11,7 +11,8 @@ Date    : 05/06/2024
 #include <windows.h>
 
 #define multithread
-#define alternance
+//#define alternance
+#define semaphore
 
 #ifdef multithread
 int nombre = 500;
@@ -20,6 +21,10 @@ int nombre = 500;
 volatile int tour = 0;
 #endif // alternance
 
+#ifdef semaphore
+HANDLE semaphorePair;
+HANDLE semaphoreImpair;
+#endif // semaphore
 
 DWORD WINAPI pairThread(LPVOID lpParam) {
 #ifdef alternance
@@ -30,12 +35,18 @@ DWORD WINAPI pairThread(LPVOID lpParam) {
 #ifdef alternance
         while (tour != p){};
 #endif // alternance
+#ifdef semaphore
+        WaitForSingleObject(semaphorePair, INFINITE);
+#endif // semaphore
 
         printf("Pair: %d\n", i);
 
 #ifdef alternance
         tour = 0;
 #endif // alternance
+#ifdef semaphore
+        ReleaseSemaphore(semaphoreImpair, 1, NULL);
+#endif // semaphore
     }
     return 0;
 }
@@ -49,10 +60,18 @@ DWORD WINAPI impairThread(LPVOID lpParam) {
 #ifdef alternance
         while (tour != p){};
 #endif // alternance
+#ifdef semaphore
+        WaitForSingleObject(semaphoreImpair, INFINITE);
+#endif // semaphore
+
         printf("Impair: %d\n", i);
+
 #ifdef alternance
         tour = 1;
 #endif // alternance
+#ifdef semaphore
+        ReleaseSemaphore(semaphorePair, 1, NULL);
+#endif // semaphore
     }
     return 0;
 }
@@ -60,7 +79,6 @@ DWORD WINAPI impairThread(LPVOID lpParam) {
 
 int main() {
 #ifdef multiprocess
-#include <windows.h>
 #include <tchar.h>
 
     // Noms des programmes à executer
@@ -146,10 +164,19 @@ int main() {
     return 0;
 #endif // multiprocess
 
-
 #ifdef multithread
     HANDLE hThreadPair, hThreadImpair;
     HANDLE hThreads[2];
+#ifdef semaphore
+    // Créer les sémaphores avec une valeur initiale de 1 pour semaphoreImpair et 0 pour semaphorePair
+    semaphorePair = CreateSemaphore(NULL, 0, 1, NULL);
+    semaphoreImpair = CreateSemaphore(NULL, 1, 1, NULL);
+
+    if (semaphorePair == NULL || semaphoreImpair == NULL) {
+        printf("Erreur lors de la création des sémaphores.\n");
+        return 1;
+    }
+#endif // semaphore
 
     hThreadPair = CreateThread(NULL, 0, pairThread, NULL, 0, NULL);
     hThreadImpair = CreateThread(NULL, 0, impairThread, NULL, 0, NULL);
@@ -181,6 +208,11 @@ int main() {
     // Fermer les handles des threads
     CloseHandle(hThreadPair);
     CloseHandle(hThreadImpair);
+#ifdef semaphore
+    // Fermer les handles des sémaphores
+    CloseHandle(semaphorePair);
+    CloseHandle(semaphoreImpair);
+#endif // semaphore
 
     return 0;
 #endif // multithread
