@@ -11,8 +11,8 @@ Date    : 05/06/2024
 #include <windows.h>
 
 #define multithread
-//#define alternance
-#define semaphore
+#define alternance
+//#define semaphore
 
 #ifdef multithread
 int nombre = 500;
@@ -33,7 +33,7 @@ DWORD WINAPI pairThread(LPVOID lpParam) {
 
     for (int i = 2; i <= nombre; i += 2) {
 #ifdef alternance
-        while (tour != p){};
+        while (tour != p) { printf(".");};
 #endif // alternance
 #ifdef semaphore
         WaitForSingleObject(semaphorePair, INFINITE);
@@ -58,7 +58,7 @@ DWORD WINAPI impairThread(LPVOID lpParam) {
 
     for (int i = 1; i <= nombre; i += 2) {
 #ifdef alternance
-        while (tour != p){};
+        while (tour != p) { printf("."); };
 #endif // alternance
 #ifdef semaphore
         WaitForSingleObject(semaphoreImpair, INFINITE);
